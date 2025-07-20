@@ -1,0 +1,55 @@
+.drag-drop-container {
+  margin: 20px 0;
+}
+
+.drag-drop-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.drop-zone {
+  border: 2px dashed #ccc;
+  padding: 20px;
+  min-height: 100px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.draggable-option {
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: move;
+  user-select: none;
+}
+
+.draggable-option:hover {
+  background-color: #e0e0e0;
+}
+
+.drag-drop-field {
+  margin: 1rem 0;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.field-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.field-select:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+}
