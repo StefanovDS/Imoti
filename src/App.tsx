@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const App = () => {
   const [selectedTab, setSelectedTab] = useState('sell');
@@ -13,6 +14,14 @@ const App = () => {
     withPhotos: false,
     withVideo: false
   });
+
+  // Define initial properties list
+  const [properties, setProperties] = useState([
+    { id: 1, city: 'София', type: 'apartment', price: '200000', area: '80' },
+    { id: 2, city: 'Пловдив', type: 'house', price: '150000', area: '120' },
+    { id: 3, city: 'Варна', type: 'land', price: '50000', area: '500' },
+    // Add more properties here as needed
+  ]);
 
   const cities = [
     'София', 'Пловдив', 'Варна', 'Бургас', 'Русе', 'Стара Загора', 
@@ -34,7 +43,18 @@ const App = () => {
   };
 
   const handleSearch = () => {
-    console.log('Search with filters:', searchFilters);
+    const filteredProperties = properties.filter((property) => {
+      return (
+        (!searchFilters.location || property.city.includes(searchFilters.location)) &&
+        (searchFilters.propertyType === 'all' || property.type === searchFilters.propertyType) &&
+        (!searchFilters.priceFrom || parseFloat(property.price) >= parseFloat(searchFilters.priceFrom)) &&
+        (!searchFilters.priceTo || parseFloat(property.price) <= parseFloat(searchFilters.priceTo)) &&
+        (!searchFilters.areaFrom || parseFloat(property.area) >= parseFloat(searchFilters.areaFrom)) &&
+        (!searchFilters.areaTo || parseFloat(property.area) <= parseFloat(searchFilters.areaTo))
+      );
+    });
+    console.log('Filtered properties:', filteredProperties);
+    // Here you can display the results in a property list
   };
 
   return (
@@ -45,14 +65,14 @@ const App = () => {
           {/* Top bar */}
           <div className="flex items-center justify-between py-2 text-sm">
             <div className="flex items-center space-x-4">
-              <span className="text-red-600 font-bold text-2xl">imoti.bg</span>
+              <span className="text-green-600 font-bold text-3xl">Imoti.bg</span>
               <span className="text-gray-600">Сайт за имоти №1</span>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="text-gray-600 hover:text-red-600">Вход</button>
+              <button className="text-gray-600 hover:text-green-600">Вход</button>
               <span className="text-gray-400">|</span>
-              <button className="text-gray-600 hover:text-red-600">Нова Регистрация</button>
-              <button className="bg-red-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-red-700">
+              <button className="text-gray-600 hover:text-green-600">Нова Регистрация</button>
+              <button className="bg-green-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-green-700">
                 + ДОБАВИ ОБЯВА
               </button>
             </div>
@@ -60,16 +80,19 @@ const App = () => {
 
           {/* Navigation */}
           <nav className="flex items-center space-x-8 py-3 border-t">
-            <button className="bg-red-600 text-white px-6 py-2 rounded font-medium">
+            <Link to="/" className="bg-green-600 text-white px-6 py-2 rounded font-medium">
               Начало
-            </button>
-            <button className="text-gray-700 hover:text-red-600 font-medium">Публикуване</button>
-            <button className="text-gray-700 hover:text-red-600 font-medium">Търсене</button>
-            <button className="text-gray-700 hover:text-red-600 font-medium">Нови сгради</button>
-            <button className="text-gray-700 hover:text-red-600 font-medium">Агенции</button>
-            <button className="text-gray-700 hover:text-red-600 font-medium">Новини</button>
-            <button className="text-gray-700 hover:text-red-600 font-medium">Кредити</button>
-            <button className="text-gray-700 hover:text-red-600 font-medium">+ Още...</button>
+            </Link>
+            <Link to="/publish" className="text-gray-700 hover:text-green-600 font-medium">
+              Публикуване
+            </Link>
+            <Link to="/search" className="text-gray-700 hover:text-green-600 font-medium">
+              Търсене
+            </Link>
+            <Link to="/new-buildings" className="text-gray-700 hover:text-green-600 font-medium">
+              Нови сгради
+            </Link>
+            {/* Add remaining navigation items similarly */}
           </nav>
         </div>
       </header>
@@ -77,7 +100,7 @@ const App = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-8">
-          Открий своя нов имот в сайт No 1 за имоти в България:
+          Открий своя нов имот в Imoti.bg - сайт №1 за имоти в България
         </h1>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -87,7 +110,7 @@ const App = () => {
               onClick={() => setSelectedTab('sell')}
               className={`flex-1 py-4 px-6 text-center font-bold text-lg ${
                 selectedTab === 'sell' 
-                  ? 'bg-red-600 text-white' 
+                  ? 'bg-green-600 text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -97,7 +120,7 @@ const App = () => {
               onClick={() => setSelectedTab('rent')}
               className={`flex-1 py-4 px-6 text-center font-bold text-lg ${
                 selectedTab === 'rent' 
-                  ? 'bg-red-600 text-white' 
+                  ? 'bg-green-600 text-white' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -145,7 +168,7 @@ const App = () => {
                       placeholder="Местоположение"
                       value={searchFilters.location}
                       onChange={(e) => handleInputChange('location', e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                   </div>
                 </div>
@@ -161,7 +184,7 @@ const App = () => {
                   <select
                     value={searchFilters.propertyType}
                     onChange={(e) => handleInputChange('propertyType', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
                   >
                     {propertyTypes.map(type => (
                       <option key={type.value} value={type.value}>{type.label}</option>
@@ -180,7 +203,7 @@ const App = () => {
                       placeholder="От"
                       value={searchFilters.priceFrom}
                       onChange={(e) => handleInputChange('priceFrom', e.target.value)}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                     <span className="text-gray-500 font-bold">—</span>
                     <input
@@ -188,12 +211,12 @@ const App = () => {
                       placeholder="До"
                       value={searchFilters.priceTo}
                       onChange={(e) => handleInputChange('priceTo', e.target.value)}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                     <select
                       value={searchFilters.currency}
                       onChange={(e) => handleInputChange('currency', e.target.value)}
-                      className="px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+                      className="px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
                     >
                       <option value="EUR">EUR</option>
                       <option value="BGN">BGN</option>
@@ -213,7 +236,7 @@ const App = () => {
                       placeholder="От"
                       value={searchFilters.areaFrom}
                       onChange={(e) => handleInputChange('areaFrom', e.target.value)}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                     <span className="text-gray-500 font-bold">—</span>
                     <input
@@ -221,9 +244,9 @@ const App = () => {
                       placeholder="До"
                       value={searchFilters.areaTo}
                       onChange={(e) => handleInputChange('areaTo', e.target.value)}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
-                    <span className="text-red-600 font-medium">( кв.м )</span>
+                    <span className="text-green-600 font-medium">( кв.м )</span>
                   </div>
                 </div>
 
@@ -236,15 +259,15 @@ const App = () => {
                     <input
                       type="text"
                       placeholder="От"
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                     <span className="text-gray-500 font-bold">—</span>
                     <input
                       type="text"
                       placeholder="До"
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
-                    <span className="text-red-600 font-medium">( кв.м )</span>
+                    <span className="text-green-600 font-medium">( кв.м )</span>
                   </div>
                 </div>
 
@@ -255,7 +278,7 @@ const App = () => {
                       type="checkbox"
                       checked={searchFilters.withPhotos}
                       onChange={(e) => handleInputChange('withPhotos', e.target.checked)}
-                      className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500"
+                      className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
                     />
                     <span className="text-gray-700">Само обяви със снимка</span>
                   </label>
@@ -264,7 +287,7 @@ const App = () => {
                       type="checkbox"
                       checked={searchFilters.withVideo}
                       onChange={(e) => handleInputChange('withVideo', e.target.checked)}
-                      className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500"
+                      className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
                     />
                     <span className="text-gray-700">Само обяви с видео</span>
                   </label>
@@ -272,9 +295,9 @@ const App = () => {
 
                 {/* Search Button */}
                 <div className="pt-4">
-                    <button
+                  <button
                     onClick={handleSearch}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-md flex items-center justify-center space-x-2 text-lg"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-md flex items-center justify-center space-x-2 text-lg"
                   >
                     <span>🔍</span>
                     <span>ТЪРСИ</span>
@@ -283,7 +306,7 @@ const App = () => {
 
                 {/* Additional Criteria */}
                 <div className="pt-4 border-t border-gray-200">
-                  <button className="flex items-center space-x-2 text-red-600 hover:text-red-700 font-medium">
+                  <button className="flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium">
                     <span>🔧</span>
                     <span>Още критерии за търсене</span>
                   </button>
@@ -300,11 +323,12 @@ const App = () => {
             {cities.map((city, index) => (
               <button
                 key={index}
-                className="p-4 text-left border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors group"
+                onClick={() => handleInputChange('location', city)}
+                className="p-4 text-left border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors group"
               >
                 <div className="flex items-center space-x-3">
-                  <span className="text-gray-400 group-hover:text-red-500">📍</span>
-                  <span className="font-medium text-gray-700 group-hover:text-red-600">{city}</span>
+                  <span className="text-gray-400 group-hover:text-green-500">📍</span>
+                  <span className="font-medium text-gray-700 group-hover:text-green-600">{city}</span>
                 </div>
               </button>
             ))}
@@ -349,7 +373,7 @@ const App = () => {
             </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Imoti.bg - Всички права запазени</p>
+            <p>© 2025 Imoti.bg - Всички права запазени</p>
           </div>
         </div>
       </footer>
