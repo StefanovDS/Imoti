@@ -1,11 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client'; // Correct import for React 18
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter, unstable_usePrompt } from 'react-router-dom';
 import App from './App';
 import './index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );
