@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "nodemon server/server.js",
+    "start": "concurrently \"npm run server\" \"npm run dev\""
   },
   "eslintConfig": {
     "extends": [
@@ -36,6 +38,8 @@
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.0",
+    "concurrently": "^9.2.0",
+    "nodemon": "^3.1.10",
     "typescript": "^5.5.0",
     "vite": "^5.2.0"
   }
