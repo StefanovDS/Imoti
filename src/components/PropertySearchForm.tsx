@@ -40,6 +40,8 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({ onSearchResults
     withPhotos: false,
     withVideo: false
   });
+  const [searchResults, setSearchResults] = useState<Property[]>([]); // New state for results
+  const [error, setError] = useState<string | null>(null); // New state for errors
 
   const cities = [
     'София', 'Пловдив', 'Варна', 'Бургас', 'Русе', 'Стара Загора', 
@@ -62,7 +64,7 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({ onSearchResults
 
   const handleSearch = async () => {
     try {
-      // Convert currency if needed
+      setError(null); // Clear previous errors
       const priceMultiplier = searchFilters.currency === 'EUR' ? 1 : 
                              searchFilters.currency === 'BGN' ? 0.51 : 0.91; // EUR to USD
       
@@ -80,16 +82,18 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({ onSearchResults
 
       const response = await fetch(`http://localhost:5000/api/listings/search?${params}`);
       
-      if (response.ok) {
-        const data = await response.json();
-        if (onSearchResults) {
-          onSearchResults(data);
-        }
-      } else {
-        console.error('Failed to fetch search results');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setSearchResults(data); // Update state with search results
+      if (onSearchResults) {
+        onSearchResults(data); // Notify parent component if prop is provided
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error during search:', error);
+      setError(error instanceof Error ? error.message : 'Unknown error occurred');
     }
   };
 
@@ -267,6 +271,24 @@ const PropertySearchForm: React.FC<PropertySearchFormProps> = ({ onSearchResults
           ))}
         </div>
       </div>
+
+      {/* Search Results */}
+      {error && <div className="p-4 mt-4 text-red-600 bg-red-100 rounded">{error}</div>}
+      {searchResults.length > 0 && (
+        <div className="p-8 mt-4 bg-gray-50 rounded-lg">
+          <h2 className="text-xl font-bold mb-4">Резултати от търсенето ({searchResults.length})</h2>
+          <ul className="space-y-4">
+            {searchResults.map((property) => (
+              <li key={property.id} className="border-b pb-2">
+                <h3 className="font-semibold">{property.title}</h3>
+                <p>{property.description}</p>
+                <p>Цена: {property.price} EUR | Площ: {property.area} кв.м | Местоположение: {property.location}</p>
+                <p>Тип: {property.type} | Добавено на: {new Date(property.created_at).toLocaleDateString()}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
