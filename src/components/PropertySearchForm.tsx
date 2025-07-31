@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -69,19 +68,19 @@ const PropertySearchForm: React.FC = () => {
 
   const uploadImages = async (): Promise<string[]> => {
     if (selectedImages.length === 0) return [];
-    
+
     const imageUrls: string[] = [];
-    
+
     for (const image of selectedImages) {
       const formData = new FormData();
       formData.append('image', image);
-      
+
       try {
         const response = await fetch('http://0.0.0.0:5000/api/upload-image', {
           method: 'POST',
           body: formData
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           imageUrls.push(result.imageUrl);
@@ -90,18 +89,18 @@ const PropertySearchForm: React.FC = () => {
         console.error('Error uploading image:', error);
       }
     }
-    
+
     return imageUrls;
   };
 
   const handleAddListing = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
-    
+
     try {
       // First upload images
       const imageUrls = await uploadImages();
-      
+
       // Then create the listing with image URLs
       const response = await fetch('http://0.0.0.0:5000/api/listings', {
         method: 'POST',
@@ -147,10 +146,10 @@ const PropertySearchForm: React.FC = () => {
         console.log('Add listing clicked, current state:', showAddForm);
         setShowAddForm(!showAddForm);
       }} />
-      
+
       <div className="min-h-screen bg-gray-100">
         <div className="max-w-4xl mx-auto px-4">
-          
+
           {/* Add Listing Form - appears directly below navigation */}
           {showAddForm && (
             <div id="addListingForm" className="pt-8">
@@ -177,7 +176,7 @@ const PropertySearchForm: React.FC = () => {
                         <option value="rental">Под наем</option>
                       </select>
                     </div>
-                    
+
                     <div>
                       <label htmlFor="addType" className="block text-sm font-semibold text-gray-700 mb-1">Тип имот</label>
                       <select
@@ -307,7 +306,7 @@ const PropertySearchForm: React.FC = () => {
                         <p className="text-xs leading-5 text-gray-600">PNG, JPG, GIF до 10MB</p>
                       </div>
                     </div>
-                    
+
                     {/* Selected Images Preview */}
                     {selectedImages.length > 0 && (
                       <div className="mt-4">
@@ -364,7 +363,7 @@ const PropertySearchForm: React.FC = () => {
               <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
                 Търсене на имоти
               </h1>
-              
+
               <form onSubmit={handleSearch} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>

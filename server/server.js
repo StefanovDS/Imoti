@@ -62,9 +62,9 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
 });
 
 // Serve images from Object Storage
-app.get('/api/image/:filename(*)', async (req, res) => {
+app.get('/api/image/*', async (req, res) => {
   try {
-    const filename = decodeURIComponent(req.params.filename);
+    const filename = decodeURIComponent(req.params[0] || req.path.replace('/api/image/', ''));
     const imageBuffer = await client.downloadAsBytes(filename);
     
     // Set appropriate content type
