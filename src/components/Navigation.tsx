@@ -1,8 +1,11 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-const Navigation: React.FC = () => {
-  const navigate = useNavigate();
+interface NavigationProps {
+  onAddListingClick?: () => void;
+}
+
+const Navigation: React.FC<NavigationProps> = ({ onAddListingClick }) => {
   
   return (
     <header className="bg-white shadow-sm">
@@ -18,7 +21,7 @@ const Navigation: React.FC = () => {
             <span className="text-gray-400">|</span>
             <button className="text-gray-600 hover:text-green-600">Нова Регистрация</button>
             <button
-              onClick={() => window.open('/dobavi-obiava', '_blank')}
+              onClick={onAddListingClick}
               className="bg-green-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-green-700"
             >
               + ДОБАВИ ОБЯВА
