@@ -234,9 +234,16 @@ const PropertySearchForm: React.FC = () => {
             />
           </div>
 
+          {/* Debug indicator */}
+          {showAddForm && (
+            <div className="mt-8 bg-yellow-100 border border-yellow-400 p-4 rounded-lg">
+              <p className="text-yellow-800 font-semibold">🔍 DEBUG: Form is now visible! State: {showAddForm.toString()}</p>
+            </div>
+          )}
+
           {/* Add Listing Form - shown conditionally */}
           {showAddForm && (
-            <div className="mt-8 bg-white p-6 rounded-lg shadow-lg">
+            <div className="mt-8 bg-white p-6 rounded-lg shadow-lg border-4 border-green-500">
               <h2 className="text-xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3">
                 Добави Нова Обява
               </h2>
