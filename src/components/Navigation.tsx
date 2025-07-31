@@ -18,7 +18,7 @@ const Navigation: React.FC = () => {
             <span className="text-gray-400">|</span>
             <button className="text-gray-600 hover:text-green-600">Нова Регистрация</button>
             <button
-              onClick={() => navigate('/dobavi-obiava')}
+              onClick={() => window.open('/dobavi-obiava', '_blank')}
               className="bg-green-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-green-700"
             >
               + ДОБАВИ ОБЯВА
