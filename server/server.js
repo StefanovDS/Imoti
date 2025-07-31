@@ -1,7 +1,28 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const multer = require('multer');
+const { Client } = require('@replit/object-storage');
 const db = require(path.join(__dirname, '../config/db'));
+
+// Initialize Replit Object Storage client
+const client = new Client();
+
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
 
 const app = express();
 
@@ -13,6 +34,54 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Image upload endpoint
+app.post('/api/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const filename = `listings/${timestamp}-${req.file.originalname}`;
+    
+    // Upload to Replit Object Storage
+    await client.uploadFromBytes(filename, req.file.buffer, {
+      contentType: req.file.mimetype
+    });
+
+    // Return the public URL
+    const imageUrl = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/api/image/${encodeURIComponent(filename)}`;
+    
+    res.json({ imageUrl });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Serve images from Object Storage
+app.get('/api/image/:filename(*)', async (req, res) => {
+  try {
+    const filename = decodeURIComponent(req.params.filename);
+    const imageBuffer = await client.downloadAsBytes(filename);
+    
+    // Set appropriate content type
+    const ext = path.extname(filename).toLowerCase();
+    let contentType = 'image/jpeg';
+    if (ext === '.png') contentType = 'image/png';
+    if (ext === '.gif') contentType = 'image/gif';
+    if (ext === '.webp') contentType = 'image/webp';
+    
+    res.set('Content-Type', contentType);
+    res.set('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+    res.send(imageBuffer);
+  } catch (error) {
+    console.error('Error serving image:', error);
+    res.status(404).json({ error: 'Image not found' });
+  }
+});
 
 // Log all requests with full URL
 app.use((req, res, next) => {
@@ -36,7 +105,7 @@ app.post('/api/listings', (req, res) => {
     return res.status(400).json({ error: 'No data received in request body' });
   }
 
-  const { title, description, price, location, type, area, listingType } = req.body;
+  const { title, description, price, location, type, area, listingType, images } = req.body;
   
   console.log('Parsed fields:', { title, description, price, location, type, area, listingType });
   
@@ -46,13 +115,14 @@ app.post('/api/listings', (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  const query = 'INSERT INTO listings (title, description, price, location, type, area, is_rental) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  const isRental = type.toLowerCase().includes('наем');
+  const query = 'INSERT INTO listings (title, description, price, location, type, area, is_rental, images) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+  const isRental = listingType === 'rental';
+  const imagesJson = images ? JSON.stringify(images) : null;
   
   console.log('Executing query:', query);
-  console.log('Query parameters:', [title, description, price, location, type, area, isRental]);
+  console.log('Query parameters:', [title, description, price, location, type, area, isRental, imagesJson]);
   
-  db.query(query, [title, description, price, location, type, area, isRental], (error, results) => {
+  db.query(query, [title, description, price, location, type, area, isRental, imagesJson], (error, results) => {
     if (error) {
       console.error('Error inserting listing:', error);
       return res.status(500).json({ error: 'Error adding listing', details: error.message });

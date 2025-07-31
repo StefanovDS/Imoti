@@ -24,6 +24,8 @@ const PropertySearchForm: React.FC = () => {
     area: '',
     listingType: 'sale'
   });
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -56,10 +58,52 @@ const PropertySearchForm: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedImages(prev => [...prev, ...files]);
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImages = async (): Promise<string[]> => {
+    if (selectedImages.length === 0) return [];
+    
+    const imageUrls: string[] = [];
+    
+    for (const image of selectedImages) {
+      const formData = new FormData();
+      formData.append('image', image);
+      
+      try {
+        const response = await fetch('http://0.0.0.0:5000/api/upload-image', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          imageUrls.push(result.imageUrl);
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+      }
+    }
+    
+    return imageUrls;
+  };
+
   const handleAddListing = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
+    
     try {
-      const response = await fetch('http://localhost:5000/api/listings', {
+      // First upload images
+      const imageUrls = await uploadImages();
+      
+      // Then create the listing with image URLs
+      const response = await fetch('http://0.0.0.0:5000/api/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,7 +113,8 @@ const PropertySearchForm: React.FC = () => {
           location: formData.location,
           type: formData.type,
           area: formData.area,
-          listingType: formData.listingType
+          listingType: formData.listingType,
+          images: imageUrls
         }),
       });
       if (response.ok) {
@@ -83,6 +128,7 @@ const PropertySearchForm: React.FC = () => {
           area: '',
           listingType: 'sale'
         });
+        setSelectedImages([]);
         setShowAddForm(false);
       } else {
         alert('Неуспешно добавяне на обява');
@@ -90,6 +136,8 @@ const PropertySearchForm: React.FC = () => {
     } catch (error) {
       console.error('Error:', error);
       alert('Възникна грешка');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -219,6 +267,76 @@ const PropertySearchForm: React.FC = () => {
                     />
                   </div>
 
+                  {/* Image Upload Section */}
+                  <div className="col-span-full">
+                    <label htmlFor="images" className="block text-sm font-semibold text-gray-700 mb-1">
+                      Снимки на имота
+                    </label>
+                    <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
+                      <div className="text-center">
+                        <svg
+                          className="mx-auto h-12 w-12 text-gray-300"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M1.5 6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0119.5 6v6a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 12V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <div className="mt-4 flex text-sm leading-6 text-gray-600">
+                          <label
+                            htmlFor="images"
+                            className="relative cursor-pointer rounded-md bg-white font-semibold text-green-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-green-600 focus-within:ring-offset-2 hover:text-green-500"
+                          >
+                            <span>Качете снимки</span>
+                            <input
+                              id="images"
+                              name="images"
+                              type="file"
+                              className="sr-only"
+                              multiple
+                              accept="image/*"
+                              onChange={handleImageChange}
+                            />
+                          </label>
+                          <p className="pl-1">или плъзнете и пуснете</p>
+                        </div>
+                        <p className="text-xs leading-5 text-gray-600">PNG, JPG, GIF до 10MB</p>
+                      </div>
+                    </div>
+                    
+                    {/* Selected Images Preview */}
+                    {selectedImages.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Избрани снимки:</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {selectedImages.map((image, index) => (
+                            <div key={index} className="relative">
+                              <img
+                                src={URL.createObjectURL(image)}
+                                alt={`Preview ${index + 1}`}
+                                className="h-20 w-full rounded-lg object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                              >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                              <p className="mt-1 text-xs text-gray-500 truncate">{image.name}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex justify-end space-x-4 pt-4 border-t">
                     <button
                       type="button"
@@ -229,9 +347,10 @@ const PropertySearchForm: React.FC = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all"
+                      disabled={uploading}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Добави обява
+                      {uploading ? 'Качва се...' : 'Добави обява'}
                     </button>
                   </div>
                 </form>

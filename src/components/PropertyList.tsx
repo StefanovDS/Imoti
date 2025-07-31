@@ -9,6 +9,7 @@ interface Property {
   type: string;
   area: string;
   created_at: string;
+  images?: string;
 }
 
 interface PropertyListProps {
@@ -18,8 +19,22 @@ interface PropertyListProps {
 const PropertyList: React.FC<PropertyListProps> = ({ properties }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {properties.map((property) => (
+      {properties.map((property) => {
+        const images = property.images ? JSON.parse(property.images) : [];
+        return (
         <div key={property.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+          {images.length > 0 && (
+            <div className="h-48 overflow-hidden">
+              <img 
+                src={images[0]} 
+                alt={property.title}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
           <div className="p-6">
             <div className="flex justify-between items-start">
               <div>
@@ -52,7 +67,8 @@ const PropertyList: React.FC<PropertyListProps> = ({ properties }) => {
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
       {properties.length === 0 && (
         <div className="col-span-full text-center py-8 text-gray-600">
           Няма намерени имоти, отговарящи на вашите критерии
