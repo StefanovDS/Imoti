@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -12,8 +11,9 @@ const PropertySearchForm: React.FC = () => {
     maxPrice: '',
     minArea: '',
     maxArea: '',
-    listingType: 'sale' // 'sale' or 'rental'
+    listingType: 'sale'
   });
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -24,6 +24,7 @@ const PropertySearchForm: React.FC = () => {
     area: '',
     listingType: 'sale'
   });
+
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -95,28 +96,24 @@ const PropertySearchForm: React.FC = () => {
 
   return (
     <div>
-      <Navigation onAddListingClick={() => {
-        console.log('Add listing clicked, current state:', showAddForm);
-        setShowAddForm(!showAddForm);
-      }} />
+      <Navigation onAddListingClick={() => setShowAddForm(!showAddForm)} />
       
       <div className="min-h-screen bg-gray-100">
         <div className="max-w-4xl mx-auto px-4">
           
-          {/* Add Listing Form - appears directly below navigation */}
+          {/* Add Listing Form */}
           {showAddForm && (
             <div id="addListingForm" className="pt-8">
-              <div className="bg-white p-6 rounded-lg shadow-lg border-4 border-green-500">
-                <div className="mb-4 bg-yellow-100 border border-yellow-400 p-4 rounded-lg">
-                  <p className="text-yellow-800 font-semibold">✅ SUCCESS: Add Listing Form is now visible!</p>
-                </div>
+              <div className="bg-white p-6 rounded-lg shadow-lg">
                 <h2 className="text-xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3">
                   Добави Нова Обява
                 </h2>
                 <form onSubmit={handleAddListing} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="addListingType" className="block text-sm font-semibold text-gray-700 mb-1">Тип обява</label>
+                      <label htmlFor="addListingType" className="block text-sm font-semibold text-gray-700 mb-1">
+                        Тип обява
+                      </label>
                       <select
                         id="addListingType"
                         name="listingType"
@@ -131,7 +128,9 @@ const PropertySearchForm: React.FC = () => {
                     </div>
                     
                     <div>
-                      <label htmlFor="addType" className="block text-sm font-semibold text-gray-700 mb-1">Тип имот</label>
+                      <label htmlFor="addType" className="block text-sm font-semibold text-gray-700 mb-1">
+                        Тип имот
+                      </label>
                       <select
                         id="addType"
                         name="type"
@@ -150,7 +149,9 @@ const PropertySearchForm: React.FC = () => {
                     </div>
 
                     <div>
-                      <label htmlFor="addLocation" className="block text-sm font-semibold text-gray-700 mb-1">Местоположение</label>
+                      <label htmlFor="addLocation" className="block text-sm font-semibold text-gray-700 mb-1">
+                        Местоположение
+                      </label>
                       <input
                         id="addLocation"
                         type="text"
@@ -164,7 +165,9 @@ const PropertySearchForm: React.FC = () => {
                     </div>
 
                     <div>
-                      <label htmlFor="addPrice" className="block text-sm font-semibold text-gray-700 mb-1">Цена (лв.)</label>
+                      <label htmlFor="addPrice" className="block text-sm font-semibold text-gray-700 mb-1">
+                        Цена (лв.)
+                      </label>
                       <input
                         id="addPrice"
                         type="number"
@@ -178,7 +181,9 @@ const PropertySearchForm: React.FC = () => {
                     </div>
 
                     <div>
-                      <label htmlFor="addArea" className="block text-sm font-semibold text-gray-700 mb-1">Площ (кв.м)</label>
+                      <label htmlFor="addArea" className="block text-sm font-semibold text-gray-700 mb-1">
+                        Площ (кв.м)
+                      </label>
                       <input
                         id="addArea"
                         type="text"
@@ -192,7 +197,9 @@ const PropertySearchForm: React.FC = () => {
                     </div>
 
                     <div>
-                      <label htmlFor="addTitle" className="block text-sm font-semibold text-gray-700 mb-1">Заглавие</label>
+                      <label htmlFor="addTitle" className="block text-sm font-semibold text-gray-700 mb-1">
+                        Заглавие
+                      </label>
                       <input
                         id="addTitle"
                         type="text"
@@ -207,7 +214,9 @@ const PropertySearchForm: React.FC = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="addDescription" className="block text-sm font-semibold text-gray-700 mb-1">Описание</label>
+                    <label htmlFor="addDescription" className="block text-sm font-semibold text-gray-700 mb-1">
+                      Описание
+                    </label>
                     <textarea
                       id="addDescription"
                       name="description"
@@ -239,7 +248,7 @@ const PropertySearchForm: React.FC = () => {
             </div>
           )}
 
-          {/* Search Form - now appears below the add form when open, or at top when add form is closed */}
+          {/* Search Form */}
           <div className="pt-8">
             <div className="bg-white p-8 rounded-lg shadow-lg">
               <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
@@ -359,19 +368,6 @@ const PropertySearchForm: React.FC = () => {
                 </div>
               </form>
             </div>
-          </div>
-
-          {/* Map Image - always at the bottom */}
-          <div className="mt-8 pb-8 flex justify-center">
-            <img 
-              src="/attached_assets/image_1753984636343.png" 
-              alt="Карта на България" 
-              className="max-w-md rounded-lg shadow-md"
-              onError={(e) => {
-                console.log('Image failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
-            />
           </div>
         </div>
       </div>
