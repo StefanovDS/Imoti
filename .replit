@@ -2,3 +2,19 @@ modules = ["nodejs-20", "web"]
 
 [nix]
 channel = "stable-25_05"
+
+[workflows]
+runButton = "Start Development Server"
+
+[[workflows.workflow]]
+name = "Start Development Server"
+author = 45808281
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && node server.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"

@@ -96,7 +96,18 @@ const PropertySearchForm: React.FC = () => {
     <div>
       <Navigation onAddListingClick={() => {
         console.log('Add listing clicked, current state:', showAddForm);
-        setShowAddForm(!showAddForm);
+        const newState = !showAddForm;
+        setShowAddForm(newState);
+        
+        if (newState) {
+          // Scroll to form after a short delay to ensure it's rendered
+          setTimeout(() => {
+            const formElement = document.getElementById('addListingForm');
+            if (formElement) {
+              formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        }
       }} />
       
       {/* Rest of your existing PropertySearchForm content */}
@@ -221,29 +232,12 @@ const PropertySearchForm: React.FC = () => {
             </form>
           </div>
           
-          {/* Map Image */}
-          <div className="mt-8 flex justify-center">
-            <img 
-              src="/attached_assets/image_1753984636343.png" 
-              alt="Карта на България" 
-              className="max-w-md rounded-lg shadow-md"
-              onError={(e) => {
-                console.log('Image failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-
-          {/* Debug indicator */}
+          {/* Add Listing Form - shown conditionally - MOVED ABOVE MAP */}
           {showAddForm && (
-            <div className="mt-8 bg-yellow-100 border border-yellow-400 p-4 rounded-lg">
-              <p className="text-yellow-800 font-semibold">🔍 DEBUG: Form is now visible! State: {showAddForm.toString()}</p>
-            </div>
-          )}
-
-          {/* Add Listing Form - shown conditionally */}
-          {showAddForm && (
-            <div className="mt-8 bg-white p-6 rounded-lg shadow-lg border-4 border-green-500">
+            <div id="addListingForm" className="mt-8 bg-white p-6 rounded-lg shadow-lg border-4 border-green-500">
+              <div className="mb-4 bg-yellow-100 border border-yellow-400 p-4 rounded-lg">
+                <p className="text-yellow-800 font-semibold">✅ SUCCESS: Add Listing Form is now visible!</p>
+              </div>
               <h2 className="text-xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3">
                 Добави Нова Обява
               </h2>
@@ -371,6 +365,19 @@ const PropertySearchForm: React.FC = () => {
               </form>
             </div>
           )}
+
+          {/* Map Image */}
+          <div className="mt-8 flex justify-center">
+            <img 
+              src="/attached_assets/image_1753984636343.png" 
+              alt="Карта на България" 
+              className="max-w-md rounded-lg shadow-md"
+              onError={(e) => {
+                console.log('Image failed to load');
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
