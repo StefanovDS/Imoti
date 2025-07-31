@@ -1,294 +1,173 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Navigation from './Navigation'; // Add this import
 
-interface Property {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  location: string;
-  type: string;
-  area: string;
-  created_at: string;
-}
-
-interface SearchFilters {
-  location: string;
-  propertyType: string;
-  priceFrom: string;
-  priceTo: string;
-  areaFrom: string;
-  areaTo: string;
-  currency: string;
-  withPhotos: boolean;
-  withVideo: boolean;
-}
-
-interface PropertySearchFormProps {
-  onSearchResults?: (properties: Property[]) => void;
-}
-
-const PropertySearchForm: React.FC<PropertySearchFormProps> = ({ onSearchResults }) => {
-  const [selectedTab, setSelectedTab] = useState('sell');
-  const [searchFilters, setSearchFilters] = useState<SearchFilters>({
+const PropertySearchForm: React.FC = () => {
+  const [searchParams, setSearchParams] = useState({
+    type: '',
     location: '',
-    propertyType: 'all',
-    priceFrom: '',
-    priceTo: '',
-    areaFrom: '',
-    areaTo: '',
-    currency: 'EUR',
-    withPhotos: false,
-    withVideo: false
+    minPrice: '',
+    maxPrice: '',
+    minArea: '',
+    maxArea: '',
+    listingType: 'sale' // 'sale' or 'rental'
   });
-  const [searchResults, setSearchResults] = useState<Property[]>([]); // New state for results
-  const [error, setError] = useState<string | null>(null); // New state for errors
+  const navigate = useNavigate();
 
-  const cities = [
-    'София', 'Пловдив', 'Варна', 'Бургас', 'Русе', 'Стара Загора', 
-    'Плевен', 'Сливен', 'Добрич', 'Шумен', 'Перник', 'Ямбол'
-  ];
-
-  const propertyTypes = [
-    { value: 'all', label: 'Всички' },
-    { value: 'apartment', label: 'Апартамент' },
-    { value: 'house', label: 'Къща' },
-    { value: 'office', label: 'Офис' },
-    { value: 'shop', label: 'Магазин' },
-    { value: 'garage', label: 'Гараж' },
-    { value: 'land', label: 'Парцел' }
-  ];
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setSearchFilters(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      setError(null); // Clear previous errors
-      const priceMultiplier = searchFilters.currency === 'EUR' ? 1 : 
-                             searchFilters.currency === 'BGN' ? 0.51 : 0.91; // EUR to USD
-      
-      const params = new URLSearchParams({
-        location: searchFilters.location,
-        propertyType: searchFilters.propertyType,
-        priceFrom: searchFilters.priceFrom ? (parseFloat(searchFilters.priceFrom) * priceMultiplier).toString() : '',
-        priceTo: searchFilters.priceTo ? (parseFloat(searchFilters.priceTo) * priceMultiplier).toString() : '',
-        areaFrom: searchFilters.areaFrom,
-        areaTo: searchFilters.areaTo,
-        isRental: (selectedTab === 'rent').toString(),
-        withPhotos: searchFilters.withPhotos.toString(),
-        withVideo: searchFilters.withVideo.toString()
+      const queryParams = new URLSearchParams();
+      Object.entries(searchParams).forEach(([key, value]) => {
+        if (value) queryParams.append(key, value);
       });
 
-      const response = await fetch(`http://localhost:5000/api/listings/search?${params}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setSearchResults(data); // Update state with search results
-      if (onSearchResults) {
-        onSearchResults(data); // Notify parent component if prop is provided
+      const response = await fetch(`http://localhost:5000/api/listings/search?${queryParams}`);
+      if (response.ok) {
+        const results = await response.json();
+        navigate('/search-results', { state: { results } });
+      } else {
+        console.error('Search failed');
+        alert('Търсенето неуспешно');
       }
     } catch (error) {
-      console.error('Error during search:', error);
-      setError(error instanceof Error ? error.message : 'Unknown error occurred');
+      console.error('Error:', error);
+      alert('Възникна грешка при търсенето');
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      {/* Tab Navigation */}
-      <div className="flex">
-        <button
-          onClick={() => setSelectedTab('sell')}
-          className={`flex-1 py-4 px-6 text-center font-bold text-lg ${
-            selectedTab === 'sell' 
-              ? 'bg-green-600 text-white' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          ПРОДАЖБИ
-        </button>
-        <button
-          onClick={() => setSelectedTab('rent')}
-          className={`flex-1 py-4 px-6 text-center font-bold text-lg ${
-            selectedTab === 'rent' 
-              ? 'bg-green-600 text-white' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          НАЕМИ
-        </button>
-      </div>
-
-      <div className="p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Map */}
-          <div className="lg:col-span-1">
-            <div className="bg-gray-100 rounded-lg p-4 h-96 relative">
-              {/* Simplified Bulgaria Map */}
-              <svg viewBox="0 0 400 300" className="w-full h-full">
-                <path
-                  d="M50 150 Q100 100 150 120 Q200 90 250 110 Q300 100 350 130 L340 180 Q300 200 250 190 Q200 210 150 200 Q100 190 50 180 Z"
-                  fill="#d4b896"
-                  stroke="#999"
-                  strokeWidth="2"
-                />
-                {/* Cities as dots */}
-                <circle cx="120" cy="160" r="6" fill="white" stroke="#666" strokeWidth="2" />
-                <circle cx="180" cy="180" r="4" fill="white" stroke="#666" strokeWidth="2" />
-                <circle cx="280" cy="140" r="4" fill="white" stroke="#666" strokeWidth="2" />
-                <text x="120" y="175" textAnchor="middle" className="text-xs fill-gray-600">София</text>
-                <text x="180" y="195" textAnchor="middle" className="text-xs fill-gray-600">Пловдив</text>
-                <text x="280" y="135" textAnchor="middle" className="text-xs fill-gray-600">Варна</text>
-              </svg>
-            </div>
+    <div>
+      <Navigation /> {/* Add Navigation component here */}
+      
+      {/* Rest of your existing PropertySearchForm content */}
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-4xl mx-auto pt-8 px-4">
+          <div className="bg-white p-8 rounded-lg shadow-lg">
+            <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
+              Търсене на имоти
+            </h1>
             
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Местоположение:
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">📍</span>
-                <input
-                  type="text"
-                  placeholder="Местоположение"
-                  value={searchFilters.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
+            <form onSubmit={handleSearch} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="listingType" className="block text-sm font-medium text-gray-700 mb-2">
+                    Тип обява
+                  </label>
+                  <select
+                    id="listingType"
+                    name="listingType"
+                    value={searchParams.listingType}
+                    onChange={handleInputChange}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  >
+                    <option value="sale">За продажба</option>
+                    <option value="rental">Под наем</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+                    Тип имот
+                  </label>
+                  <select
+                    id="type"
+                    name="type"
+                    value={searchParams.type}
+                    onChange={handleInputChange}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  >
+                    <option value="">Всички типове</option>
+                    <option value="apartment">Апартамент</option>
+                    <option value="house">Къща</option>
+                    <option value="office">Офис</option>
+                    <option value="shop">Магазин</option>
+                    <option value="garage">Гараж</option>
+                    <option value="land">Парцел</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                    Местоположение
+                  </label>
+                  <input
+                    id="location"
+                    type="text"
+                    name="location"
+                    value={searchParams.location}
+                    onChange={handleInputChange}
+                    placeholder="Град, квартал, улица"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Цена (лв.)
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      name="minPrice"
+                      value={searchParams.minPrice}
+                      onChange={handleInputChange}
+                      placeholder="От"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                    <input
+                      type="number"
+                      name="maxPrice"
+                      value={searchParams.maxPrice}
+                      onChange={handleInputChange}
+                      placeholder="До"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Площ (кв.м)
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      name="minArea"
+                      value={searchParams.minArea}
+                      onChange={handleInputChange}
+                      placeholder="От"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                    <input
+                      type="number"
+                      name="maxArea"
+                      value={searchParams.maxArea}
+                      onChange={handleInputChange}
+                      placeholder="До"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Right Column - Search Filters */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Property Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Вид имот:
-              </label>
-              <select
-                value={searchFilters.propertyType}
-                onChange={(e) => handleInputChange('propertyType', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-              >
-                {propertyTypes.map(type => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Price Range */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Цена на имота:
-              </label>
-              <div className="flex items-center space-x-4">
-                <input
-                  type="text"
-                  placeholder="От"
-                  value={searchFilters.priceFrom}
-                  onChange={(e) => handleInputChange('priceFrom', e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
-                <span className="text-gray-500 font-bold">—</span>
-                <input
-                  type="text"
-                  placeholder="До"
-                  value={searchFilters.priceTo}
-                  onChange={(e) => handleInputChange('priceTo', e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
-                <select
-                  value={searchFilters.currency}
-                  onChange={(e) => handleInputChange('currency', e.target.value)}
-                  className="px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+              <div className="flex justify-center pt-6">
+                <button
+                  type="submit"
+                  className="bg-green-600 text-white px-8 py-3 rounded-md text-lg font-semibold hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
-                  <option value="EUR">EUR</option>
-                  <option value="BGN">BGN</option>
-                  <option value="USD">USD</option>
-                </select>
+                  🔍 Търсене
+                </button>
               </div>
-            </div>
-
-            {/* Area Range */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Площ:
-              </label>
-              <div className="flex items-center space-x-4">
-                <input
-                  type="text"
-                  placeholder="От"
-                  value={searchFilters.areaFrom}
-                  onChange={(e) => handleInputChange('areaFrom', e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
-                <span className="text-gray-500 font-bold">—</span>
-                <input
-                  type="text"
-                  placeholder="До"
-                  value={searchFilters.areaTo}
-                  onChange={(e) => handleInputChange('areaTo', e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
-                <span className="text-green-600 font-medium">кв.м</span>
-              </div>
-            </div>
-
-            {/* Search Button */}
-            <div className="pt-4">
-              <button
-                onClick={handleSearch}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-md flex items-center justify-center space-x-2 text-lg"
-              >
-                <span>🔍</span>
-                <span>ТЪРСИ</span>
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
-
-      {/* Popular Cities Section */}
-      <div className="mt-8 px-8 pb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Популярни градове:</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {cities.map((city, index) => (
-            <button
-              key={index}
-              onClick={() => handleInputChange('location', city)}
-              className="p-4 text-left border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-gray-400 group-hover:text-green-500">📍</span>
-                <span className="font-medium text-gray-700 group-hover:text-green-600">{city}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Search Results */}
-      {error && <div className="p-4 mt-4 text-red-600 bg-red-100 rounded">{error}</div>}
-      {searchResults.length > 0 && (
-        <div className="p-8 mt-4 bg-gray-50 rounded-lg">
-          <h2 className="text-xl font-bold mb-4">Резултати от търсенето ({searchResults.length})</h2>
-          <ul className="space-y-4">
-            {searchResults.map((property) => (
-              <li key={property.id} className="border-b pb-2">
-                <h3 className="font-semibold">{property.title}</h3>
-                <p>{property.description}</p>
-                <p>Цена: {property.price} EUR | Площ: {property.area} кв.м | Местоположение: {property.location}</p>
-                <p>Тип: {property.type} | Добавено на: {new Date(property.created_at).toLocaleDateString()}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 };

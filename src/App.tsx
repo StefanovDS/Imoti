@@ -1,26 +1,14 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Navigation from './components/Navigation';
-import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import PropertyListings from './pages/PropertyListings';
-import AddListing from './pages/AddListing';
+import { Routes, Route } from 'react-router-dom'; // Remove BrowserRouter import
+import PropertySearchForm from './components/PropertySearchForm';
+import SearchResultsPage from './components/SearchResultsPage';
 
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navigation />
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/prodajbi" element={<PropertyListings />} />
-          <Route path="/naemi" element={<PropertyListings />} />
-          <Route path="/dobavi-obiava" element={<AddListing />} />
-          <Route path="/novi-sgradi" element={<PropertyListings />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
+    <Routes> {/* Remove <Router>, keep only <Routes> */}
+      <Route path="/" element={<PropertySearchForm />} />
+      <Route path="/search-results" element={<SearchResultsPage />} />
+    </Routes>
   );
 };
 
